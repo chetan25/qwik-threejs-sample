@@ -1,6 +1,7 @@
 import type { JSXNode, JSXOutput } from "@builder.io/qwik";
 import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 function capitalize(str: string) {
   const result = [...str]
@@ -42,8 +43,9 @@ const CanvasRenderer = component$(({ canvas }: { canvas: JSXOutput }) => {
   const sceneEL = (canvas as JSXNode<Element>).children as JSXNode<Element>;
 
   console.log(sceneEL, "sceneEL");
-  const sceneObj: Record<string, {} | string | []> = {};
+  const sceneObj: Record<string, {} | string | [] | boolean> = {};
   sceneObj.type = sceneEL.type;
+  sceneObj.hasOrbitControl = sceneEL.props.hasOrbitControl ?? false;
 
   addChildrens(sceneObj, sceneEL);
   // console.log(sceneObj, "sceneObj");
@@ -76,6 +78,7 @@ const CanvasRenderer = component$(({ canvas }: { canvas: JSXOutput }) => {
               // @ts-ignore
               const material = new THREE[chldType]({
                 color: chld.props.color,
+                wireframe: chld.props.wireframe,
               });
               elChld.push(material);
             } else {
@@ -87,10 +90,6 @@ const CanvasRenderer = component$(({ canvas }: { canvas: JSXOutput }) => {
           });
         }
         if (elType.includes("Camera")) {
-          elChld.push(el.props.fov);
-          elChld.push(sizes.width / sizes.height);
-        }
-        if (elType.includes("Mesh")) {
           elChld.push(el.props.fov);
           elChld.push(sizes.width / sizes.height);
         }
@@ -106,6 +105,7 @@ const CanvasRenderer = component$(({ canvas }: { canvas: JSXOutput }) => {
       });
 
       const canvas = outputRef.value;
+
       // renderer
       const renderer = new THREE.WebGLRenderer({
         canvas: canvas,
@@ -117,6 +117,29 @@ const CanvasRenderer = component$(({ canvas }: { canvas: JSXOutput }) => {
       // render the scene
       //@ts-ignore
       renderer.render(scene, camera);
+
+      const clock = new THREE.Clock();
+
+      if (canvasEls.value.hasOrbitControl) {
+        // Controls
+        // @ts-ignore
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+
+        const tick = () => {
+          // Update controls
+          controls.update();
+
+          // Render
+          // @ts-ignore
+          renderer.render(scene, camera);
+
+          // Call tick again on the next frame
+          window.requestAnimationFrame(tick);
+        };
+
+        tick();
+      }
     }
   });
 

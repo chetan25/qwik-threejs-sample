@@ -7,10 +7,10 @@ export default component$(() => {
     <CanvasRenderer
       canvas={
         <canvas width="800" height="600">
-          <scene>
-            <mesh wireFrame={true}>
+          <scene hasOrbitControl={true}>
+            <mesh>
               <boxGeometry width="1" height="1" depth="1" />
-              <meshBasicMaterial color="red" />
+              <meshBasicMaterial color="red" wireframe={true} />
             </mesh>
             <perspectiveCamera fov="75" pos={[0, 0, 5]} />
           </scene>
